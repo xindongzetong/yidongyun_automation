@@ -378,14 +378,14 @@ class VDIStateMachine:
                             "y": ry
                         })
                         logger.info(f"[ACT] IN_SESSION: Mouse Jiggle to ({rx}, {ry}) to keep alive.")
+                        time.sleep(10)
+                        logger.warning("[ACT] Need to pause -> KILLING")
+                        subprocess.call(["pkill", "-9", "-f", "uSmartView"])
+                        time.sleep(self.max_int)
                 except Exception as e:
                     logger.error(f"Heartbeat Jiggle Failed: {e}")
-                time.sleep(10)
-                logger.warning("[ACT] Need to pause -> KILLING")
-                subprocess.call(["pkill", "-9", "-f", "uSmartView"])
                 self.last_keepalive = now
                 self.keepalive_interval = random.randint(self.min_int, self.max_int)
-                time.sleep(self.keepalive_interval)
 
         elif current_state == State.UNKNOWN:
              if duration > 30:
