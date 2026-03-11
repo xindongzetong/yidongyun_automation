@@ -369,6 +369,7 @@ class VDIStateMachine:
                 try:
                     s = self.get_cdp_session()
                     if s:
+                        time.sleep(10)
                         # 产生一个随机的“拟人”坐标
                         # 在 200-600 像素的中间安全区域抖动，避免意外点到边角的退出或关闭按钮
                         rx, ry = random.randint(200, 600), random.randint(200, 600)
@@ -381,11 +382,11 @@ class VDIStateMachine:
                         time.sleep(10)
                         logger.warning("[ACT] Need to pause -> KILLING")
                         subprocess.call(["pkill", "-9", "-f", "uSmartView"])
-                        time.sleep(self.max_int)
+                        time.sleep(random.randint(self.min_int, self.max_int))
                 except Exception as e:
                     logger.error(f"Heartbeat Jiggle Failed: {e}")
                 self.last_keepalive = now
-                self.keepalive_interval = random.randint(self.min_int, self.max_int)
+                self.keepalive_interval = self.min_int
 
         elif current_state == State.UNKNOWN:
              if duration > 30:
