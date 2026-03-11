@@ -365,7 +365,7 @@ class VDIStateMachine:
         elif current_state == State.IN_SESSION:
             if self.wait:
                 logger.warning("[ACT] Need to pause -> Reloading UI")
-                if s: s.reload()
+                subprocess.call(["pkill", "-9", "-f", "uSmartView"])
                 time.sleep(self.keepalive_interval)
                 self.wait = False
             # Keep Alive via CDP (No PyAutoGUI)
