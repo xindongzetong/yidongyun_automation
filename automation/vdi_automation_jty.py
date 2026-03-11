@@ -117,6 +117,7 @@ class VDIStateMachine:
         self.last_state = None
         self.state_start_time = time.time()
         self.last_action_time = 0  # 追踪最后一次尝试操作的时间
+        self.wait = False
 
     def reload_config(self):
         self.config = load_config()
@@ -365,7 +366,7 @@ class VDIStateMachine:
             # Keep Alive via CDP (No PyAutoGUI)
             # 必须模拟鼠标移动，否则 VDI 客户端会判定为闲置并断开
             now = time.time()
-            if now - self.last_keepalive > self.keepalive_interval:
+            if not self.wait:
                 try:
                     s = self.get_cdp_session()
                     if s:
@@ -380,13 +381,15 @@ class VDIStateMachine:
                         })
                         logger.info(f"[ACT] IN_SESSION: Mouse Jiggle to ({rx}, {ry}) to keep alive.")
                         time.sleep(10)
-                        logger.warning("[ACT] Need to pause -> KILLING")
+                        logger.info("[ACT] Need to pause -> KILLING")
                         subprocess.call(["pkill", "-9", "-f", "uSmartView"])
-                        time.sleep(self.max_int)
+                        self.wait = True
                 except Exception as e:
                     logger.error(f"Heartbeat Jiggle Failed: {e}")
-                self.last_keepalive = now
-                self.keepalive_interval = self.min_int
+            else:
+                logger.info("[ACT] Need to pause -> WATTING")
+                time.sleep(random.randint(self.min_int, self.max_int))
+                self.wait = False
 
         elif current_state == State.UNKNOWN:
              if duration > 30:
