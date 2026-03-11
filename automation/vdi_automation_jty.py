@@ -365,31 +365,25 @@ class VDIStateMachine:
         elif current_state == State.IN_SESSION:
             # Keep Alive via CDP (No PyAutoGUI)
             # 必须模拟鼠标移动，否则 VDI 客户端会判定为闲置并断开
-            now = time.time()
-            if not self.wait:
-                try:
-                    s = self.get_cdp_session()
-                    if s:
-                        time.sleep(10)
-                        # 产生一个随机的“拟人”坐标
-                        # 在 200-600 像素的中间安全区域抖动，避免意外点到边角的退出或关闭按钮
-                        rx, ry = random.randint(200, 600), random.randint(200, 600)
-                        s.send("Input.dispatchMouseEvent", {
-                            "type": "mouseMoved",
-                            "x": rx,
-                            "y": ry
-                        })
-                        logger.info(f"[ACT] IN_SESSION: Mouse Jiggle to ({rx}, {ry}) to keep alive.")
-                        time.sleep(10)
-                        logger.info("[ACT] Need to pause -> KILLING")
-                        subprocess.call(["pkill", "-9", "-f", "uSmartView"])
-                        self.wait = True
-                except Exception as e:
-                    logger.error(f"Heartbeat Jiggle Failed: {e}")
-            else:
-                logger.info("[ACT] Need to pause -> WATTING")
-                time.sleep(random.randint(self.min_int, self.max_int))
-                self.wait = False
+            try:
+                s = self.get_cdp_session()
+                if s:
+                    time.sleep(10)
+                    # 产生一个随机的“拟人”坐标
+                    # 在 200-600 像素的中间安全区域抖动，避免意外点到边角的退出或关闭按钮
+                    rx, ry = random.randint(200, 600), random.randint(200, 600)
+                    s.send("Input.dispatchMouseEvent", {
+                        "type": "mouseMoved",
+                        "x": rx,
+                        "y": ry
+                    })
+                    logger.info(f"[ACT] IN_SESSION: Mouse Jiggle to ({rx}, {ry}) to keep alive.")
+                    time.sleep(10)
+                    logger.info("[ACT] Need to pause -> KILLING")
+                    subprocess.call(["pkill", "-9", "-f", "uSmartView"])
+                    time.sleep(random.randint(self.min_int, self.max_int))
+            except Exception as e:
+                logger.error(f"Heartbeat Jiggle Failed: {e}")
 
         elif current_state == State.UNKNOWN:
              if duration > 30:
