@@ -117,6 +117,7 @@ class VDIStateMachine:
         self.last_state = None
         self.state_start_time = time.time()
         self.last_action_time = 0  # 追踪最后一次尝试操作的时间
+        self.wait = False
 
     def reload_config(self):
         self.config = load_config()
@@ -130,6 +131,7 @@ class VDIStateMachine:
         self.conflict_wait = int(self.config.get('conflict_wait_seconds', 300))
         self.keepalive_interval = random.randint(self.min_int, self.max_int)
         self.last_conflict_log = 0
+
 
     def get_cdp_session(self):
         """Get or refresh CDP session"""
@@ -361,6 +363,11 @@ class VDIStateMachine:
                  if s: s.reload()
 
         elif current_state == State.IN_SESSION:
+            if self.wait:
+                logger.warning("[ACT] Need to pause -> Reloading UI")
+                if s: s.reload()
+                time.sleep(self.keepalive_interval)
+                self.wait = False
             # Keep Alive via CDP (No PyAutoGUI)
             # 必须模拟鼠标移动，否则 VDI 客户端会判定为闲置并断开
             now = time.time()
@@ -379,7 +386,7 @@ class VDIStateMachine:
                         logger.info(f"[ACT] IN_SESSION: Mouse Jiggle to ({rx}, {ry}) to keep alive.")
                 except Exception as e:
                     logger.error(f"Heartbeat Jiggle Failed: {e}")
-                
+                self.wait = True
                 self.last_keepalive = now
                 self.keepalive_interval = random.randint(self.min_int, self.max_int)
 
@@ -399,7 +406,7 @@ class VDIStateMachine:
             try:
                 # 1. Sense
                 new_state = self.detect_state()
-                
+
                 # 2. State Transition
                 if new_state != self.state:
                     logger.info(f"TRANSITION: {self.state.name} -> {new_state.name}")
