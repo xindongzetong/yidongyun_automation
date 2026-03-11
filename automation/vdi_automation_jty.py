@@ -382,7 +382,7 @@ class VDIStateMachine:
                         time.sleep(10)
                         logger.warning("[ACT] Need to pause -> KILLING")
                         subprocess.call(["pkill", "-9", "-f", "uSmartView"])
-                        time.sleep(random.randint(self.min_int, self.max_int))
+                        time.sleep(self.max_int)
                 except Exception as e:
                     logger.error(f"Heartbeat Jiggle Failed: {e}")
                 self.last_keepalive = now
