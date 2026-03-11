@@ -385,6 +385,7 @@ class VDIStateMachine:
                 subprocess.call(["pkill", "-9", "-f", "uSmartView"])
                 self.last_keepalive = now
                 self.keepalive_interval = random.randint(self.min_int, self.max_int)
+                time.sleep(self.keepalive_interval)
 
         elif current_state == State.UNKNOWN:
              if duration > 30:
