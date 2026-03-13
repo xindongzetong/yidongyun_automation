@@ -256,7 +256,7 @@ class VDIStateMachine:
             if "home" in current_url:
                 page_text = s.evaluate("document.body.innerText")
                 # 检查冲突/挤占状态
-                if "其他设备" in page_text or "被挤" in page_text or "新版本" in page_text or "升级" in page_text:
+                if "其他设备" in page_text or "被挤" in page_text or "新版本" in page_text:
                     logger.warning("[SENSE] Conflict Detected -> WAIT")
                     return State.WAIT
                 
